@@ -1,6 +1,6 @@
 {
-  "name": "crude",
-  "version": "1.0.0",
+  "name": "crude-box",
+  "version": "0.1.1",
   "description": "general crud environment for javascript",
   "main": "crude.js",
   "scripts": {
