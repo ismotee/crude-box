@@ -1,0 +1,17 @@
+{
+  "name": "crude",
+  "version": "1.0.0",
+  "description": "general crud environment for javascript",
+  "main": "crude.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Ismo Torvinen",
+  "license": "MIT",
+  "dependencies": {
+    "lodash.clonedeep": "^4.5.0"
+  },
+  "devDependencies": {
+    "jest": "^25.3.0"
+  }
+}
