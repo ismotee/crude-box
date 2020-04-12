@@ -1,6 +1,6 @@
 {
   "name": "crude-box",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "general crud environment for javascript",
   "repository": {
     "type": "git",
@@ -12,7 +12,6 @@
     "test": "jest"
   },
   "author": "Ismo Torvinen",
-  "license": "MIT",
   "dependencies": {
     "lodash.clonedeep": "^4.5.0"
   },

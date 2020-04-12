@@ -5,22 +5,41 @@ describe("creators:", () => {
   let response;
   let initialValue = undefined;
   let callbackFunc;
+  let subscribeFunc;
+
   const getStateKeys = () => Object.keys(crude.getState());
   const getItemWithResponse = () => crude.getState()[response];
   const readResponseItem = () => crude.read(response);
   const crudeWithOneItem = (init) => {
     return () => {
-      callbackFunc = jest.fn();
       initialValue = init;
       crude = new Crude();
-      crude.setStateChangedCallback(callbackFunc);
       response = crude.create(initialValue);
     };
   };
+  const crudeWithOneItemAndCallback = (init) => {
+    return () => {
+      callbackFunc = jest.fn();
+      initialValue = init;
+      crude = new Crude();
+      crude.addStateChangedCallback(callbackFunc);
+      response = crude.create(initialValue);
+    };
+  };
+  const crudeWithOneItemAndSubscribe = (init) => {
+    return () => {
+      subscribeFunc = jest.fn();
+      initialValue = init;
+      crude = new Crude();
+      crude.addStateChangedCallback(callbackFunc);
+      response = crude.create(initialValue);
+      crude.subscribe([response], subscribeFunc);
+    };
+  };
+
   const emptyCrude = () => {
     return () => {
       crude = new Crude();
-      crude.setStateChangedCallback(callbackFunc);
     };
   };
 
@@ -28,31 +47,7 @@ describe("creators:", () => {
     /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/
   );
 
-  describe("When create is called without argument,", () => {
-    beforeEach(crudeWithOneItem(undefined));
-
-    test("should return uuid", () => {
-      expect(response).toEqual(uuidMatch);
-    });
-
-    test("should create an new object to store with a value of undefined", () => {
-      const item = getItemWithResponse();
-      const entries = Object.entries(item);
-
-      expect(getStateKeys(crude)).toEqual(expect.arrayContaining([uuidMatch]));
-      expect(entries).toEqual([["value", undefined]]);
-    });
-
-    test("store keys length should be 1", () => {
-      expect(getStateKeys().length).toEqual(1);
-    });
-
-    test("should call callback", () => {
-      expect(callbackFunc).toHaveBeenCalled();
-    });
-  });
-
-  describe("When create is called with string,", () => {
+  describe("When create is called with string", () => {
     beforeEach(crudeWithOneItem("some initial value"));
 
     test("should create item with initial value", () => {
@@ -61,28 +56,10 @@ describe("creators:", () => {
 
     test("value should be accessible using read()", () => {
       expect(readResponseItem()).toEqual(initialValue);
-      expect(callbackFunc).toHaveBeenCalled();
     });
   });
 
-  describe("When create is called with string,", () => {
-    beforeEach(crudeWithOneItem("some initial value"));
-
-    test("should create item with initial value", () => {
-      expect(getItemWithResponse()).toEqual({ value: initialValue });
-      expect(callbackFunc).toHaveBeenCalled();
-    });
-  });
-
-  describe("When accessing item with read(id),", () => {
-    beforeEach(crudeWithOneItem("some initial value"));
-
-    test("should return value", () => {
-      expect(readResponseItem()).toEqual(initialValue);
-    });
-  });
-
-  describe("When accessing item with read(),", () => {
+  describe("When accessing item with read()", () => {
     beforeEach(crudeWithOneItem("some initial value"));
 
     test("should return list of items", () => {
@@ -90,7 +67,7 @@ describe("creators:", () => {
     });
   });
 
-  describe("given empty state, when accessing item with read(),", () => {
+  describe("given empty state, when accessing item with read()", () => {
     beforeEach(emptyCrude());
 
     test("should return list of items", () => {
@@ -98,8 +75,8 @@ describe("creators:", () => {
     });
   });
 
-  describe("When trying to access value with non existing id by using read(),", () => {
-    beforeEach(crudeWithOneItem(undefined));
+  describe("When trying to access value with non existing id by using read()", () => {
+    beforeEach(crudeWithOneItem());
 
     test("should throw Item doesn't exist error", () => {
       falseId = "id that doesn't exist";
@@ -112,10 +89,10 @@ describe("creators:", () => {
     });
   });
 
-  describe("When updating item with a new value,", () => {
-    beforeEach(crudeWithOneItem("first value"));
+  describe("Given callback, when updating item with a new value", () => {
+    beforeEach(crudeWithOneItemAndCallback("first value"));
 
-    test("Should change value", () => {
+    test("Should change value and call callback function", () => {
       const newValue = "second value";
       crude.update(response, newValue);
       expect(readResponseItem()).toEqual(newValue);
@@ -123,24 +100,27 @@ describe("creators:", () => {
     });
   });
 
-  describe("When updating item with a new value but id doesn't exist,", () => {
-    beforeEach(crudeWithOneItem("first value"));
+  describe("When updating item with a new value but id doesn't exist", () => {
+    beforeEach(crudeWithOneItemAndCallback("first value"));
 
     test("Should throw Item doesn't exist error", () => {
       const newValue = "second value";
       const falseId = "not an id";
-      expect.assertions(2);
+      let message;
+      expect.assertions(3);
       try {
         crude.update(falseId, newValue);
       } catch (e) {
-        expect(e.message).toEqual(`Item doesn't exist: ${falseId}`);
+        message = e.message;
       }
+      expect(message).toEqual(`Item doesn't exist: ${falseId}`);
       expect(crude.getState()).toEqual({ [response]: { value: initialValue } });
+      expect(callbackFunc).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe("when delete is called with item id,", () => {
-    beforeEach(crudeWithOneItem());
+  describe("when delete is called with item id and callback", () => {
+    beforeEach(crudeWithOneItemAndCallback());
 
     test("should delete item from the state,", () => {
       crude.delete(response);
@@ -166,6 +146,35 @@ describe("creators:", () => {
         message = e.message;
       }
       expect(message).toEqual(`Item doesn't exist: ${falseId}`);
+    });
+  });
+
+  describe("when creating item with a callback and callback is removed and item is deleted", () => {
+    beforeEach(crudeWithOneItemAndCallback());
+
+    test("should call a callback once", () => {
+      crude.removeStateChangedCallback(callbackFunc);
+      crude.delete(response);
+      expect(callbackFunc).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("when item is created and subscribed and item's value is updated", () => {
+    beforeEach(crudeWithOneItemAndSubscribe());
+
+    test("should call subscribe", () => {
+      crude.update(response, "new value");
+      expect(subscribeFunc).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe("when item is created ans subscribed and unsubscribed and the item's value is updated", () => {
+    beforeEach(crudeWithOneItemAndSubscribe());
+
+    test("should not call subscribe function", () => {
+      crude.unsubscribe(subscribeFunc);
+      crude.update(response, "some value");
+      expect(subscribeFunc).not.toHaveBeenCalled();
     });
   });
 });
