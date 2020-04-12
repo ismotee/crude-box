@@ -96,4 +96,4 @@ class Crude {
   }
 }
 
-module.exports.default = Crude;
+module.exports = Crude;

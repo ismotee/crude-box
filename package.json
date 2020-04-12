@@ -1,13 +1,13 @@
 {
   "name": "crude-box",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "general crud environment for javascript",
   "repository": {
     "type": "git",
     "url": "https://github.com/ismotee/crude-box"
   },
   "license": "MIT",
-  "main": "crude.js",
+  "main": "Crude.js",
   "scripts": {
     "test": "jest"
   },
