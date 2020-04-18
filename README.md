@@ -8,46 +8,42 @@ Crude-box is a simplistic, relational and framework agnostic data manager.
 
 # Usage / Getting started
 
-Import CrudeBox and create new instance:
+_Import CrudeBox and create new instance:_
 
 ```
  import CrudeBox from "crude-box";
  import crude = CrudeBox();
 ```
 
-Crude-box "emulates" CRUD-style data management.
+_Crude-box "emulates" CRUD-style data management. There's four basic methods:_
 
-create new data entry:
+```
+const id = crude.create(initialValue);
+crude.read(id);
+crude.update(id, newValue);
+crude.delete(id);
+```
+
+_There's few other convinient methods:_
+
+```
+// create a calculated property that updates whenever ids are being changed.
+// calculatedFunction will receive values of the ids as a separated arguments.
+const id = crude.createCalculated(calculationFunction, ...ids);
+
+// subscribes to ids and calls subscribe function after value change.
+crude.subscribe(ids, subscribeFunction);
+crude.unsubscribe(subscribeFunction);
+
+// to read multiple values
+const values = crude.readMany(...ids);
+```
 
 ```
 const test = crude.create("Hello, world!");
 ```
 
 note: create returns an id that is wise to store somewhere.
-
-Access freshly created data:
-
-```
-crude.read(test);
-```
-
-or to access all data:
-
-```
-crude.read();
-```
-
-Update entry:
-
-```
-crude.update(test, "Hello, new World!");
-```
-
-delete entry:
-
-```
-crude.delete(test);
-```
 
 # Simple examples
 
