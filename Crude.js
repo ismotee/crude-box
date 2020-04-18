@@ -62,12 +62,23 @@ class Crude {
   delete(id) {
     this.validateId(id);
     this.state = this.copyState();
+    this.removeCalculated(id);
     delete this.state[id];
-    this.callCallbacks();
-    this.removeSubscribe();
+    this.cleanDependencies(id);
   }
 
-  removeSubscribe(id) {
+  removeCalculated(id) {
+    this.state[id].calculated
+      ? this.unsubscribe(this.state[id].calculated)
+      : null;
+  }
+
+  cleanDependencies(id) {
+    this.callCallbacks();
+    this.removeIdFromSubscribe(id);
+  }
+
+  removeIdFromSubscribe(id) {
     this.subscribes.forEach((sub) => {
       sub.ids = sub.ids.filter((idx) => idx !== id);
     });
@@ -93,6 +104,19 @@ class Crude {
 
   getState() {
     return this.state;
+  }
+
+  createCalculated(calculate, ...ids) {
+    const id = this.create(calculate(...this.readMany(...ids)));
+    const subscribeFunction = () =>
+      this.update(id, calculate(...this.readMany(...ids)));
+    this.subscribe(ids, subscribeFunction);
+    this.state[id].calculated = subscribeFunction;
+    return id;
+  }
+
+  readMany(...ids) {
+    return ids.map((id) => this.read(id));
   }
 }
 
