@@ -1,6 +1,6 @@
 {
   "name": "crude-box",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "general crud environment for javascript",
   "repository": {
     "type": "git",
