@@ -62,3 +62,6 @@ const person = {
 
 console.log(crude.read(person.firstName));
 ```
+
+# State of the project
+The project is postponed to the indefinite future.
